@@ -107,6 +107,7 @@ export default function RequestDetailPage() {
   const avatar   = author.slice(0, 2).toUpperCase();
   const postedAt = new Date(request.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
   const isAuthor = user?.id === request.user?._id?.toString();
+  const isHelper = request.helpers?.some((h) => (h._id ?? h).toString() === user?.id);
 
   return (
     <AppLayout title={request.title.slice(0, 60) + "…"}>
@@ -191,16 +192,21 @@ export default function RequestDetailPage() {
               </div>
               <span>· {postedAt}</span>
               <span>· {request.responses?.length ?? 0} answer{request.responses?.length !== 1 ? "s" : ""}</span>
+              <span>· {request.helpers?.length ?? 0} helper{request.helpers?.length !== 1 ? "s" : ""}</span>
             </div>
 
             <RequestDetailActions
               requestId={id}
               isSolved={request.status === "solved"}
               isAuthor={isAuthor}
+              isHelper={isHelper}
               onResponseAdded={(newResponse) => {
                 setRequest((prev) => ({ ...prev, responses: [...(prev.responses ?? []), newResponse] }));
               }}
               onSolved={() => setRequest((prev) => ({ ...prev, status: "solved" }))}
+              onHelped={(newCount) => {
+                setRequest((prev) => ({ ...prev, helpers: Array(newCount).fill({}) }));
+              }}
             />
           </div>
         </div>

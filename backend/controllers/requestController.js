@@ -1,5 +1,14 @@
 import Request from "../models/request.js";
 
+// Simple keyword-based category detection (AI feature)
+function detectCategory(description) {
+  const text = description.toLowerCase();
+  if (/react|html|css/.test(text))       return "Frontend";
+  if (/node|api|express/.test(text))     return "Backend";
+  if (/database|mongo|sql/.test(text))   return "Database";
+  return null; // no keyword match — keep user's choice
+}
+
 export const createRequest = async (req, res) => {
   try {
     const { title, description, category, tags } = req.body;
@@ -8,11 +17,14 @@ export const createRequest = async (req, res) => {
       return res.status(400).json({ message: "Title and description are required" });
     }
 
+    // Auto-categorize from description keywords; falls back to user's choice
+    const autoCategory = detectCategory(description);
+
     const request = await Request.create({
       user: req.user._id,
       title,
       description,
-      category: category || "General",
+      category: autoCategory || category || "General",
       tags: tags || [],
     });
 
@@ -157,6 +169,30 @@ export const addResponse = async (req, res) => {
     await request.populate("responses.user", "username");
 
     res.status(201).json({ response: request.responses.at(-1) });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const addHelper = async (req, res) => {
+  try {
+    const request = await Request.findById(req.params.id);
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    const userId = req.user._id.toString();
+
+    // Prevent duplicate helpers
+    const alreadyHelping = request.helpers.some((h) => h.toString() === userId);
+    if (alreadyHelping) {
+      return res.status(400).json({ message: "You are already marked as a helper" });
+    }
+
+    request.helpers.push(req.user._id);
+    await request.save();
+
+    res.json({ helperCount: request.helpers.length });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
