@@ -7,14 +7,12 @@ import Button from "@/components/Button";
 import Input from "@/components/Input";
 import { apiFetch, saveAuthData, isLoggedIn } from "@/lib/api";
 
-/**
- * Auth Page — "/auth"  (professional split-screen layout)
- */
+
 export default function AuthPage() {
   const router = useRouter();
   const [activeTab, setActiveTab]   = useState("login");
   const [loginForm, setLoginForm]   = useState({ email: "", password: "" });
-  const [signupForm, setSignupForm] = useState({ fullName: "", username: "", email: "", password: "" });
+  const [signupForm, setSignupForm] = useState({ username: "", email: "", password: "" });
   const [selectedRole, setSelectedRole] = useState(null);
   const [error, setError]   = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,10 +46,11 @@ export default function AuthPage() {
       const data = await apiFetch("/api/auth/signup", {
         method: "POST",
         body: JSON.stringify({
-          fullName: signupForm.fullName,
           username: signupForm.username,
           email:    signupForm.email,
           password: signupForm.password,
+          role:     selectedRole.replace(/-/g, "_"),
+          skills:   [],
         }),
       });
       saveAuthData(data.token, data.user);
@@ -93,47 +92,16 @@ export default function AuthPage() {
         </Link>
 
         {/* Middle content */}
-        <div className="relative z-10 space-y-8">
-          <div>
-            <h2 className="text-3xl font-extrabold text-white leading-tight mb-4">
-              The community where<br />
-              <span className="text-brand">developers get unstuck</span><br />
-              fast.
-            </h2>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Post a question, get matched with the right expert, mark it solved.
-              Build your reputation by helping others.
-            </p>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { value: "12,400+", label: "Active developers" },
-              { value: "98%",     label: "Questions answered" },
-              { value: "&lt;5min",    label: "Avg. first response" },
-              { value: "4.9★",    label: "Community rating" },
-            ].map((s) => (
-              <div key={s.label} className="bg-white/5 border border-white/10 rounded-lg p-3">
-                <p className="text-xl font-bold text-brand" dangerouslySetInnerHTML={{ __html: s.value }} />
-                <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Testimonial */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-            <p className="text-slate-300 text-sm italic leading-relaxed mb-3">
-              "Got my CORS bug fixed in under 10 minutes. The expert matched me perfectly — no more Stack Overflow rabbit holes."
-            </p>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-brand rounded-full flex items-center justify-center text-white text-xs font-bold">JD</div>
-              <div>
-                <p className="text-white text-xs font-semibold">James D.</p>
-                <p className="text-slate-500 text-xs">Senior Frontend Dev</p>
-              </div>
-            </div>
-          </div>
+        <div className="relative z-10">
+          <h2 className="text-3xl font-extrabold text-white leading-tight mb-4">
+            The community where<br />
+            <span className="text-brand">developers get unstuck</span><br />
+            fast.
+          </h2>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Post a question, get matched with the right expert, mark it solved.
+            Build your reputation by helping others.
+          </p>
         </div>
 
         <p className="text-slate-600 text-xs relative z-10">
@@ -240,13 +208,6 @@ export default function AuthPage() {
                   </div>
 
                   <Input
-                    label="Full name" name="fullName" placeholder="John Doe"
-                    value={signupForm.fullName}
-                    onChange={(e) => { setSignupForm({ ...signupForm, fullName: e.target.value }); setError(""); }}
-                    required
-                  />
-
-                  <Input
                     label="Username" name="username" placeholder="johndoe123"
                     value={signupForm.username}
                     onChange={(e) => { setSignupForm({ ...signupForm, username: e.target.value }); setError(""); }}
@@ -278,7 +239,7 @@ export default function AuthPage() {
                           key={role.id}
                           type="button"
                           onClick={() => setSelectedRole(role.id)}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded border text-left transition-all ${
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
                             selectedRole === role.id
                               ? "border-brand bg-brand-50"
                               : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"

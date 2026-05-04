@@ -1,165 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import Sidebar from "@/components/Sidebar";
+import AppLayout from "@/components/AppLayout";
 import StatsCard from "@/components/StatsCard";
 import RequestCard from "@/components/RequestCard";
 import Button from "@/components/Button";
 import { useAuth } from "@/hooks/useAuth";
-import { dashboardStats, recentRequests } from "@/lib/data";
+import { apiFetch } from "@/lib/api";
 
-/**
- * Dashboard Page — "/dashboard"
- */
 export default function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
+  const [stats, setStats] = useState(null);
+  const [recentRequests, setRecentRequests] = useState([]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-[3px] border-brand border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-slate-400">Verifying session…</p>
-        </div>
-      </div>
-    );
-  }
-
-  const initials = user?.username?.slice(0, 2).toUpperCase() ?? "??";
+  useEffect(() => {
+    if (loading) return;
+    apiFetch("/api/requests/my")
+      .then((data) => {
+        setStats(data.stats);
+        const normalized = data.requests.slice(0, 5).map((r) => ({
+          id: r._id,
+          title: r.title,
+          description: r.description,
+          tags: r.tags || [],
+          category: r.category,
+          status: r.status,
+          author: user?.username ?? "me",
+          avatar: (user?.username ?? "me").slice(0, 2).toUpperCase(),
+          createdAt: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          helperCount: r.helpers?.length ?? 0,
+        }));
+        setRecentRequests(normalized);
+      })
+      .catch((err) => console.error("[Dashboard] failed to load stats:", err.message));
+  }, [loading]);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <AppLayout title="Dashboard">
+      <div className="space-y-7">
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <div className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ${
-        sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      }`}>
-        <Sidebar onClose={() => setSidebarOpen(false)} user={user} />
-      </div>
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-
-        {/* Top navbar */}
-        <header className="bg-white border-b border-slate-200 h-14 flex items-center px-4 sm:px-6 lg:px-8 shrink-0">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-1.5 rounded text-slate-500 hover:bg-slate-100 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              <h1 className="text-base font-bold text-slate-800">Dashboard</h1>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Link href="/create">
-                <Button variant="primary" size="sm">+ Ask Question</Button>
-              </Link>
-              <div
-                className="w-8 h-8 bg-brand rounded-full flex items-center justify-center text-white text-xs font-bold"
-                title={user?.username}
-              >
-                {initials}
-              </div>
-              <button
-                onClick={logout}
-                className="hidden sm:block text-xs text-slate-400 hover:text-red-500 transition-colors font-medium"
-              >
-                Sign out
-              </button>
-            </div>
+        {/* Stats */}
+        <section>
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Overview</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatsCard icon="📝" label="My Questions"  value={stats?.total  ?? "—"} change={`${stats?.open ?? 0} open`} positive={true} />
+            <StatsCard icon="✅" label="Solved"        value={stats?.solved ?? "—"} change={stats ? `${stats.total ? Math.round((stats.solved / stats.total) * 100) : 0}% solve rate` : "—"} positive={true} />
+            <StatsCard icon="🤝" label="Helped Others" value={stats?.helped ?? "—"} change="total contributions" positive={true} />
+            <StatsCard icon="🔓" label="Open"          value={stats?.open   ?? "—"} change="awaiting help" positive={stats?.open === 0} />
           </div>
-        </header>
+        </section>
 
-        {/* Body */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-7 space-y-7">
-
-          {/* Welcome banner */}
-          <div className="bg-white border border-slate-200 rounded-lg p-5 flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">
-                Welcome back, <span className="text-brand">{user?.username}</span>! 👋
-              </h2>
-              <p className="text-sm text-slate-500 mt-0.5">{user?.email}</p>
-            </div>
-            <Link href="/create">
-              <Button variant="primary" size="sm">+ New question</Button>
-            </Link>
+        {/* Recent questions */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">My Recent Questions</h3>
+            <Link href="/explore" className="text-sm text-brand hover:underline font-medium">View all →</Link>
           </div>
-
-          {/* Stats */}
-          <section>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Overview</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {dashboardStats.map((stat) => (
-                <StatsCard key={stat.label} {...stat} />
-              ))}
+          {recentRequests.length === 0 ? (
+            <div className="bg-white border border-slate-200 rounded-lg p-10 text-center">
+              <p className="text-2xl mb-2">💬</p>
+              <p className="text-sm font-semibold text-slate-700 mb-1">No questions yet</p>
+              <p className="text-xs text-slate-400 mb-4">Ask your first question and get help from the community.</p>
+              <Link href="/create"><Button variant="primary" size="sm">+ Ask a Question</Button></Link>
             </div>
-          </section>
-
-          {/* Recent questions */}
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Recent Questions</h3>
-              <Link href="/explore" className="text-sm text-brand hover:underline font-medium">
-                View all →
-              </Link>
-            </div>
+          ) : (
             <div className="space-y-2">
               {recentRequests.map((r) => <RequestCard key={r.id} {...r} />)}
             </div>
-          </section>
-
-          {/* Quick actions */}
-          <section>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Quick Actions</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { icon: "✏️", label: "Ask a Question",    desc: "Post a new help request",   href: "/create",  accent: "hover:border-brand" },
-                { icon: "🔍", label: "Explore Questions", desc: "Browse and help others",     href: "/explore", accent: "hover:border-brand" },
-                { icon: "🚪", label: "Sign Out",           desc: "Log out of your account",   href: null,       accent: "hover:border-red-300" },
-              ].map((action) =>
-                action.href ? (
-                  <Link
-                    key={action.label}
-                    href={action.href}
-                    className={`bg-white border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:shadow-sm transition-all ${action.accent}`}
-                  >
-                    <span className="text-2xl">{action.icon}</span>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">{action.label}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{action.desc}</p>
-                    </div>
-                  </Link>
-                ) : (
-                  <button
-                    key={action.label}
-                    onClick={logout}
-                    className={`bg-white border border-slate-200 rounded-lg p-4 flex items-start gap-3 hover:shadow-sm transition-all text-left w-full ${action.accent}`}
-                  >
-                    <span className="text-2xl">{action.icon}</span>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">{action.label}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{action.desc}</p>
-                    </div>
-                  </button>
-                )
-              )}
-            </div>
-          </section>
-        </main>
+          )}
+        </section>
       </div>
-    </div>
+    </AppLayout>
   );
 }

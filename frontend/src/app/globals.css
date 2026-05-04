@@ -7,6 +7,7 @@
   --color-brand-50:   #FFF8F0;
   --color-brand-100:  #FFE8CC;
   --color-brand-200:  #FFD0A0;
+  --font-sans:        var(--font-geist-sans);
 }
 
 /* ─── CSS Variables ─── */
@@ -26,6 +27,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ─── Text selection ─── */
+::selection {
+  background-color: rgba(244, 128, 36, 0.2);
+  color: #0f172a;
+}
+
 /* ─── Orange Gradient Text ─── */
 .gradient-text {
   background: linear-gradient(135deg, #F48024 0%, #C96012 100%);
@@ -37,7 +44,9 @@ body {
 /* ─── Subtle hero background pattern ─── */
 .hero-bg {
   background-color: #ffffff;
-  background-image: radial-gradient(ellipse at 80% 0%, rgba(244,128,36,0.07) 0%, transparent 55%);
+  background-image:
+    radial-gradient(ellipse at 80% 0%, rgba(244,128,36,0.09) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 100%, rgba(244,128,36,0.05) 0%, transparent 45%);
 }
 
 /* ─── Card hover lift ─── */
@@ -59,8 +68,23 @@ body {
   box-shadow: 0 2px 12px rgba(0,0,0,0.07);
 }
 
+/* ─── Focus ring override — use brand color ─── */
+:focus-visible {
+  outline: 2px solid #F48024;
+  outline-offset: 2px;
+}
+
+/* ─── Page fade-in animation ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+main {
+  animation: fadeIn 0.22s ease both;
+}
+
 /* ─── Custom Scrollbar ─── */
 ::-webkit-scrollbar          { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track    { background: #f8fafc; }
-::-webkit-scrollbar-thumb    { background: #e2e8f0; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+::-webkit-scrollbar-thumb    { background: #cbd5e1; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

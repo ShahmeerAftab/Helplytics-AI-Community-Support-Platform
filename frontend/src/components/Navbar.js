@@ -2,12 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { isLoggedIn, clearAuthData, getStoredUser } from "@/lib/api";
 
-/**
- * Navbar — professional top nav with orange top-stripe identity mark
- */
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+  const loggedIn = isLoggedIn();
+  const user = getStoredUser();
+  const initials = user?.username?.slice(0, 2).toUpperCase() ?? "??";
+
+  function logout() {
+    clearAuthData();
+    router.push("/auth");
+  }
 
   const navLinks = [
     { label: "Explore",      href: "/explore" },
@@ -17,13 +25,12 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-      {/* Orange identity stripe */}
       <div className="h-[3px] bg-brand" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-13 py-2.5">
+        <div className="flex items-center justify-between h-14">
 
-          {/* ── Logo ── */}
+          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
             <div className="w-8 h-8 bg-brand rounded flex items-center justify-center shadow-sm group-hover:bg-brand-dark transition-colors">
               <svg viewBox="0 0 24 24" className="w-4.5 h-4.5 text-white" fill="currentColor">
@@ -35,7 +42,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* ── Desktop nav links ── */}
+          {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-0.5">
             {navLinks.map((link) => (
               <Link
@@ -48,23 +55,33 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* ── Desktop auth buttons ── */}
+          {/* Desktop right side */}
           <div className="hidden md:flex items-center gap-2">
-            <Link
-              href="/auth"
-              className="px-4 py-1.5 text-sm font-medium text-slate-700 border border-slate-300 rounded hover:border-slate-400 hover:bg-slate-50 transition-colors"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/auth"
-              className="px-4 py-1.5 text-sm font-semibold text-white bg-brand rounded hover:bg-brand-dark transition-colors shadow-sm"
-            >
-              Sign up free
-            </Link>
+            {loggedIn ? (
+              <>
+                <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center text-white text-xs font-bold" title={user?.username}>
+                  {initials}
+                </div>
+                <button
+                  onClick={logout}
+                  className="px-4 py-1.5 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth" className="px-4 py-1.5 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-colors">
+                  Log in
+                </Link>
+                <Link href="/auth" className="px-4 py-1.5 text-sm font-semibold text-white bg-brand rounded-lg hover:bg-brand-dark transition-colors shadow-sm">
+                  Sign up free
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* ── Mobile hamburger ── */}
+          {/* Mobile hamburger */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="md:hidden p-2 rounded text-slate-500 hover:bg-slate-100 transition-colors"
@@ -82,7 +99,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* ── Mobile dropdown ── */}
+        {/* Mobile dropdown */}
         {menuOpen && (
           <div className="md:hidden border-t border-slate-200 py-3 space-y-0.5">
             {navLinks.map((link) => (
@@ -96,12 +113,21 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="pt-3 border-t border-slate-200 flex flex-col gap-2 mt-1">
-              <Link href="/auth" className="block px-4 py-2 text-center text-sm font-medium text-slate-700 border border-slate-300 rounded hover:bg-slate-50">
-                Log in
-              </Link>
-              <Link href="/auth" className="block px-4 py-2 text-center text-sm font-semibold text-white bg-brand rounded hover:bg-brand-dark">
-                Sign up free
-              </Link>
+              {loggedIn ? (
+                <div className="flex items-center justify-between px-3">
+                  <span className="text-sm font-medium text-slate-700">@{user?.username}</span>
+                  <button onClick={logout} className="text-sm text-red-500 font-medium hover:underline">Sign out</button>
+                </div>
+              ) : (
+                <>
+                  <Link href="/auth" onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-center text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50">
+                    Log in
+                  </Link>
+                  <Link href="/auth" onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-center text-sm font-semibold text-white bg-brand rounded-lg hover:bg-brand-dark">
+                    Sign up free
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

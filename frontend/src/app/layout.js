@@ -13,12 +13,6 @@ export const metadata = {
     "Get help from real people, share your knowledge, and grow together. The modern community support platform.",
 };
 
-/**
- * Root Layout
- *
- * Wraps every page in the app. Sets the font, background, and base text color.
- * This is a Server Component — no "use client" needed here.
- */
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geist.variable} h-full`}>

@@ -1,42 +1,30 @@
 import Link from "next/link";
 import Badge from "./Badge";
 
-/**
- * RequestCard — Stack Overflow-style question card
- * Left: stats column  |  Right: content
- */
 export default function RequestCard({
   id, title, description, tags, category,
-  urgency, status, author, avatar, createdAt, helperCount, views,
+  status, author, avatar, createdAt, helperCount, isOwn,
 }) {
-  const urgencyMap = {
-    high:   { label: "High",   variant: "high" },
-    medium: { label: "Medium", variant: "medium" },
-    low:    { label: "Low",    variant: "low" },
-  };
-  const u = urgencyMap[urgency] ?? { label: urgency, variant: "default" };
+
+  const isSolved = status === "solved";
 
   return (
-    <div className="bg-white border border-slate-200 rounded question-card flex overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-xl question-card flex overflow-hidden shadow-sm">
 
       {/* Stats column */}
-      <div className="hidden sm:flex flex-col items-center justify-start gap-3 px-4 py-5 bg-slate-50 border-r border-slate-200 min-w-[76px] text-center shrink-0">
+      <div className="hidden sm:flex flex-col items-center justify-center gap-2.5 px-4 py-5 bg-slate-50 border-r border-slate-200 min-w-[76px] text-center shrink-0">
         <div>
           <p className="text-base font-bold text-slate-700">{helperCount}</p>
           <p className="text-xs text-slate-400 leading-tight">helpers</p>
         </div>
-        <div>
-          <p className="text-base font-bold text-slate-700">{views}</p>
-          <p className="text-xs text-slate-400 leading-tight">views</p>
-        </div>
-        <div className={`w-9 h-9 rounded flex items-center justify-center text-xs font-semibold ${
-          status === "solved"
-            ? "bg-emerald-500 text-white"
+        <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold ${
+          isSolved
+            ? "bg-emerald-500 text-white shadow-sm"
             : helperCount > 0
-              ? "border border-emerald-500 text-emerald-600"
-              : "border border-slate-300 text-slate-400"
+              ? "border-2 border-emerald-400 text-emerald-600"
+              : "border-2 border-slate-200 text-slate-400"
         }`}>
-          {status === "solved" ? "✓" : helperCount}
+          {isSolved ? "✓" : helperCount}
         </div>
       </div>
 
@@ -55,15 +43,26 @@ export default function RequestCard({
         <div className="flex flex-wrap gap-1 mb-3">
           {tags.map((tag) => <Badge key={tag} variant="tag">{tag}</Badge>)}
           <Badge variant="category">{category}</Badge>
-          <Badge variant={u.variant}>{u.label}</Badge>
         </div>
 
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <Badge variant={status === "solved" ? "solved" : "open"}>
-            {status === "solved" ? "✓ Solved" : "Unanswered"}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={isSolved ? "solved" : "open"}>
+              {isSolved ? "✓ Solved" : "Open"}
+            </Badge>
+            <Link
+              href={`/request/${id}`}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                isOwn || isSolved
+                  ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  : "bg-brand text-white hover:bg-brand-dark shadow-sm"
+              }`}
+            >
+              {isOwn ? "View" : isSolved ? "View" : "Answer →"}
+            </Link>
+          </div>
           <div className="flex items-center gap-1.5 ml-auto">
-            <div className="w-5 h-5 bg-brand-50 rounded-full flex items-center justify-center text-xs font-bold text-brand">
+            <div className="w-5 h-5 bg-brand rounded-full flex items-center justify-center text-xs font-bold text-white">
               {avatar}
             </div>
             <span className="text-xs text-brand font-medium">{author}</span>

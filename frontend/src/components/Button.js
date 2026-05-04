@@ -1,10 +1,4 @@
 "use client";
-
-/**
- * Button — Reusable button component
- * variant: "primary" | "secondary" | "ghost" | "danger" | "success"
- * size:    "sm" | "md" | "lg"
- */
 export default function Button({
   children,
   variant = "primary",
@@ -15,7 +9,7 @@ export default function Button({
   className = "",
 }) {
   const base =
-    "inline-flex items-center justify-center gap-2 font-semibold rounded transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
+    "inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
   const variants = {
     primary:

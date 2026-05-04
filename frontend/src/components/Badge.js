@@ -1,8 +1,4 @@
-/**
- * Badge — Small inline label (orange theme)
- *
- * variant: "default" | "tag" | "category" | "high" | "medium" | "low" | "solved" | "open"
- */
+
 export default function Badge({ children, variant = "default", className = "" }) {
   const variants = {
     default:  "bg-slate-100 text-slate-600 border border-slate-200",
@@ -17,7 +13,7 @@ export default function Badge({ children, variant = "default", className = "" })
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium transition-colors ${variants[variant] ?? variants.default} ${className}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium transition-colors ${variants[variant] ?? variants.default} ${className}`}
     >
       {children}
     </span>

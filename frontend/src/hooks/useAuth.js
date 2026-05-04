@@ -54,8 +54,10 @@ export function useAuth() {
         /* Token is valid — store the user */
         setUser(data.user);
       } catch {
-        /* /me failed — token is bad. apiFetch already cleared storage + redirected.
-           We just stop the loading spinner here. */
+        /* /me failed — token is bad or server unreachable. Clear storage and redirect. */
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.replace("/auth");
         return;
       } finally {
         /* Always stop the loading spinner, whether success or failure */
